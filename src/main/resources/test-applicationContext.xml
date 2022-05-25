@@ -13,5 +13,10 @@
 
     <bean id="userDao" class="com.example.tobyspring.ch01.dao.UserDao">
         <property name="dataSource" ref="dataSource"/>
+<!--        <property name="jdbcContext" ref="jdbcContext"/>-->
     </bean>
+
+<!--    <bean id="jdbcContext" class="com.example.tobyspring.ch03.dao.JdbcContext">-->
+<!--        <property name="dataSource" ref="dataSource"/>-->
+<!--    </bean>-->
 </beans>

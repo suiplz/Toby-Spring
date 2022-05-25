@@ -1,6 +1,7 @@
 package com.example.tobyspring.ch01.dao;
 
 import com.example.tobyspring.ch01.domain.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -8,11 +9,10 @@ import java.sql.*;
 public class UserDao {
 
     private DataSource dataSource;
-    private User user;
 
 
     public void add(User user) throws SQLException {
-        Connection c = dataSource.getConnection();
+        Connection c = this.dataSource.getConnection();
 
         PreparedStatement ps = c.prepareStatement(
                 "insert into users(id, name, password) values(?,?,?);");
@@ -28,24 +28,27 @@ public class UserDao {
     }
 
     public User get(String id) throws SQLException {
-        Connection c = dataSource.getConnection();
+        Connection c = this.dataSource.getConnection();
 
         PreparedStatement ps = c.prepareStatement(
                 "select * from users where id = ?");
         ps.setString(1, id);
 
         ResultSet rs = ps.executeQuery();
-        rs.next();
-        this.user = new User();
-        this.user.setId(rs.getString("id"));
-        this.user.setName(rs.getString("name"));
-        this.user.setPassword(rs.getString("password"));
-
+        User user = null;
+        if (rs.next()) {
+            user = new User();
+            user.setId(rs.getString("id"));
+            user.setName(rs.getString("name"));
+            user.setPassword(rs.getString("password"));
+        }
         rs.close();
         ps.close();
         c.close();
 
-        return this.user;
+        if (user == null) throw new EmptyResultDataAccessException(1);
+
+        return user;
     }
 
     public void deleteAll() throws SQLException {

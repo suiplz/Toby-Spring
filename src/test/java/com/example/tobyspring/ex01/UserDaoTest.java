@@ -3,10 +3,24 @@ package com.example.tobyspring.ex01;
 import com.example.tobyspring.ch01.dao.DaoFactory;
 import com.example.tobyspring.ch01.domain.User;
 import com.example.tobyspring.ch01.dao.UserDao;
+import org.junit.Before;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.stream.IntStream;
 
@@ -15,18 +29,33 @@ import static org.hamcrest.MatcherAssert.assertThat; // JUNIT 5 junit assertThat
 import static org.hamcrest.Matchers.is;
 
 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(locations = "/test-applicationContext.xml")
 class UserDaoTest {
+
+
+    private User user1;
+    private User user2;
+    private User user3;
+
+    @Autowired
+    private UserDao dao;
+    @Autowired
+    private ApplicationContext context;
+    @BeforeEach
+    void setUp() throws SQLException{
+        this.dao = context.getBean("userDao", UserDao.class);
+        dao.deleteAll();
+
+        this.user1 = new User("gyumee", "박성철", "springno1");
+        this.user2 = new User("leegw700", "이길원", "springno2");
+        this.user3 = new User("bumjin", "박범진", "springno3");
+    }
 
     @Test
     void addAndGet() throws SQLException {
 
-        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
-        UserDao dao = context.getBean("userDao", UserDao.class);
-        User user1 = new User("gyumee", "박성철", "springno1");
-        User user2 = new User("leegw700", "이길원", "springno2");
 
-
-        dao.deleteAll();
         assertThat(dao.getCount(), is(0));
 
 
@@ -72,10 +101,7 @@ class UserDaoTest {
 
     @Test
     void count() throws SQLException {
-        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
-        UserDao dao = context.getBean("userDao", UserDao.class);
 
-        dao.deleteAll();
         IntStream.range(1, 11).forEach(i -> {
             try {
                 User user = new User("User" + i, "Name" + i, "Password" + i);
@@ -84,6 +110,17 @@ class UserDaoTest {
             } catch (SQLException e) {
 
             }
+        });
+
+    }
+
+    @Test
+    void getUserFailure() throws SQLException, ClassNotFoundException {
+
+        assertThat(dao.getCount(), is(0));
+
+        Assertions.assertThrows(EmptyResultDataAccessException.class, () -> {
+            dao.get("unknown_id");
         });
     }
 }

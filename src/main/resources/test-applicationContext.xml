@@ -4,9 +4,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="dataSource"
-        class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+          class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
         <property name ="driverClass" value="com.mysql.jdbc.Driver" />
-        <property name ="url" value="jdbc:mysql://localhost/tbex" />
+        <property name ="url" value="jdbc:mysql://localhost/testdb" />
         <property name ="username" value="root" />
         <property name ="password" value="" />
     </bean>

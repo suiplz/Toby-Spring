@@ -3,6 +3,7 @@ package com.example.tobyspring.ex01;
 import com.example.tobyspring.ch01.dao.DaoFactory;
 import com.example.tobyspring.ch01.domain.User;
 import com.example.tobyspring.ch01.dao.UserDao;
+import com.example.tobyspring.ch05.Level;
 import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +13,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,16 +45,18 @@ class UserDaoTest {
 
     @Autowired
     private UserDao dao;
+
     @Autowired
     private ApplicationContext context;
+
     @BeforeEach
     void setUp() throws SQLException{
         this.dao = context.getBean("userDao", UserDao.class);
         dao.deleteAll();
 
-        this.user1 = new User("gyumee", "박성철", "springno1");
-        this.user2 = new User("leegw700", "이길원", "springno2");
-        this.user3 = new User("bumjin", "박범진", "springno3");
+        this.user1 = new User("gyumee", "박성철", "springno1", Level.BASIC, 1, 0);
+        this.user2 = new User("leegw700", "이길원", "springno2", Level.SILVER, 55, 10);
+        this.user3 = new User("bumjin", "박범진", "springno3", Level.GOLD, 100, 40);
     }
 
     @Test
@@ -66,51 +71,27 @@ class UserDaoTest {
         assertThat(dao.getCount(), is(2));
 
         User userget1 = dao.get(user1.getId());
+        checkSameUser(userget1, user1);
         assertThat(userget1.getName(), is(user1.getName()));
         assertThat(userget1.getPassword(), is(user1.getPassword()));
 
         User userget2 = dao.get(user2.getId());
+        checkSameUser(userget2, user2);
         assertThat(userget2.getName(), is(user2.getName()));
         assertThat(userget2.getPassword(), is(user2.getPassword()));
     }
 
-    @Test
-    void identityTest(){
-        DaoFactory factory = new DaoFactory();
-
-        UserDao dao1 = factory.userDao();
-        UserDao dao2 = factory.userDao();
-
-        System.out.println("dao1 = " + dao1);
-        System.out.println("dao2 = " + dao2);
-
-        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
-
-        UserDao dao3 = context.getBean("userDao", UserDao.class);
-        UserDao dao4 = context.getBean("userDao", UserDao.class);
-
-        System.out.println("dao3 = " + dao3);
-        System.out.println("dao4 = " + dao4);
-
-        System.out.println(dao1==dao2);
-        System.out.println(dao3==dao4);
-
-        System.out.println(dao1.equals(dao2));
-        System.out.println(dao4.equals(dao3));
-
-
-    }
 
     @Test
     void count() throws SQLException {
 
         IntStream.range(1, 11).forEach(i -> {
             try {
-                User user = new User("User" + i, "Name" + i, "Password" + i);
+                User user = new User("User" + i, "Name" + i, "Password" + i, Level.BASIC, 0, 0);
                 dao.add(user);
                 assertThat(dao.getCount(), is(i));
-            } catch (SQLException e) {
-
+            } catch (BadSqlGrammarException e) {
+                throw e;
             }
         });
 
@@ -154,5 +135,17 @@ class UserDaoTest {
         org.assertj.core.api.Assertions.assertThat((user1.getId())).isEqualTo(user2.getId());
         org.assertj.core.api.Assertions.assertThat((user1.getName())).isEqualTo(user2.getName());
         org.assertj.core.api.Assertions.assertThat((user1.getPassword())).isEqualTo(user2.getPassword());
+        org.assertj.core.api.Assertions.assertThat((user1.getLevel())).isEqualTo(user2.getLevel());
+        org.assertj.core.api.Assertions.assertThat((user1.getLogin())).isEqualTo(user2.getLogin());
+        org.assertj.core.api.Assertions.assertThat((user1.getRecommend())).isEqualTo(user2.getRecommend());
     }
+
+//    @Test
+//    public void duplicateKey() {
+//        dao.add(user1);
+//        dao.add(user1);
+//        Assertions.assertThrows(DataAccessException.class, () -> {
+//            dao.add(user1);
+//        });
+//    }
 }

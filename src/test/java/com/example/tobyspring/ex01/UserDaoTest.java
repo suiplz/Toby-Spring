@@ -4,6 +4,7 @@ import com.example.tobyspring.ch01.dao.DaoFactory;
 import com.example.tobyspring.ch01.domain.User;
 import com.example.tobyspring.ch01.dao.UserDao;
 import com.example.tobyspring.ch05.Level;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat; // JUNIT 5 junit assertThat
 import static org.hamcrest.Matchers.is;
 
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = "/test-applicationContext.xml")
 class UserDaoTest {
@@ -139,6 +141,26 @@ class UserDaoTest {
         org.assertj.core.api.Assertions.assertThat((user1.getLogin())).isEqualTo(user2.getLogin());
         org.assertj.core.api.Assertions.assertThat((user1.getRecommend())).isEqualTo(user2.getRecommend());
     }
+
+    @Test
+    public void update() {
+
+        dao.add(user1);
+        dao.add(user2);
+
+        user1.setName("오민규");
+        user1.setPassword("springno6");
+        user1.setLevel(Level.GOLD);
+        user1.setLogin(1000);
+        user1.setRecommend(999);
+        dao.update(user1);
+
+        User user1update = dao.get(user1.getId());
+        checkSameUser(user1, user1update);
+        User user2same = dao.get(user2.getId());
+        checkSameUser(user2, user2same);
+    }
+
 
 //    @Test
 //    public void duplicateKey() {

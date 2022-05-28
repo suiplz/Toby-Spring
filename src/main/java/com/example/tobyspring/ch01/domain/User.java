@@ -2,6 +2,8 @@ package com.example.tobyspring.ch01.domain;
 
 import com.example.tobyspring.ch05.Level;
 
+import java.util.Date;
+
 public class User {
 
     String id;
@@ -69,5 +71,14 @@ public class User {
 
     public void setRecommend(int recommend) {
         this.recommend = recommend;
+    }
+
+    public void upgradeLevel() {
+        Level nextLevel = this.level.nextLevel();
+        if (nextLevel == null) {
+            throw new IllegalArgumentException(this.level + "은 업그레이드가 불가능합니다.");
+        } else {
+                this.level = nextLevel;
+        }
     }
 }

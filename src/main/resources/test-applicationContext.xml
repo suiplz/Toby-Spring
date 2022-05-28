@@ -5,22 +5,30 @@
 
     <bean id="dataSource"
           class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
-        <property name ="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name ="driverClass" value="com.mysql.cj.jdbc.Driver" />
         <property name ="url" value="jdbc:mysql://localhost/testdb" />
         <property name ="username" value="root" />
         <property name ="password" value="" />
     </bean>
 
+
     <bean id="userDao" class="com.example.tobyspring.ch04.dao.UserDaoJdbc">
         <property name="dataSource" ref="dataSource"/>
 <!--        <property name="jdbcContext" ref="jdbcContext"/>-->
     </bean>
+<!--    <bean id="UserLevelUpgradePolicy" class="com.example.tobyspring.ch05.UserLevelUpgradePolicy" abstract="true"/>-->
+
+<!--    <bean id="UserLevelUpgradePolicyImpl" class="com.example.tobyspring.ch05.UserLevelUpgradePolicyImpl"/>-->
+
 
     <bean id="userService" class="com.example.tobyspring.ch05.UserService">
         <property name="userDao" ref="userDao"/>
+        <property name="dataSource" ref="dataSource"/>
+<!--        <property name = "UserLevelUpgradePolicy" ref="UserLevelUpgradePolicyImpl"/>-->
     </bean>
 
-<!--    <bean id="jdbcContext" class="com.example.tobyspring.ch03.dao.JdbcContext">-->
+
+    <!--    <bean id="jdbcContext" class="com.example.tobyspring.ch03.dao.JdbcContext">-->
 <!--        <property name="dataSource" ref="dataSource"/>-->
 <!--    </bean>-->
 </beans>

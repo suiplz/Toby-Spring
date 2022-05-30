@@ -56,9 +56,9 @@ class UserDaoTest {
         this.dao = context.getBean("userDao", UserDao.class);
         dao.deleteAll();
 
-        this.user1 = new User("gyumee", "박성철", "springno1", Level.BASIC, 1, 0);
-        this.user2 = new User("leegw700", "이길원", "springno2", Level.SILVER, 55, 10);
-        this.user3 = new User("bumjin", "박범진", "springno3", Level.GOLD, 100, 40);
+        this.user1 = new User("gyumee", "박성철", "springno1", Level.BASIC, 1, 0, "useradmin@ksug.org");
+        this.user2 = new User("leegw700", "이길원", "springno2", Level.SILVER, 55, 10, "asdf@ograc");
+        this.user3 = new User("bumjin", "박범진", "springno3", Level.GOLD, 100, 40, "heaw@naer.com");
     }
 
     @Test
@@ -89,7 +89,7 @@ class UserDaoTest {
 
         IntStream.range(1, 11).forEach(i -> {
             try {
-                User user = new User("User" + i, "Name" + i, "Password" + i, Level.BASIC, 0, 0);
+                User user = new User("User" + i, "Name" + i, "Password" + i, Level.BASIC, 0, 0, "email@"+i);
                 dao.add(user);
                 assertThat(dao.getCount(), is(i));
             } catch (BadSqlGrammarException e) {

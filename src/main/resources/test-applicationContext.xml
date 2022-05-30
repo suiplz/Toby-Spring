@@ -23,8 +23,16 @@
 
     <bean id="userService" class="com.example.tobyspring.ch05.UserService">
         <property name="userDao" ref="userDao"/>
-        <property name="dataSource" ref="dataSource"/>
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="mailSender" ref="mailSender"/>
 <!--        <property name = "UserLevelUpgradePolicy" ref="UserLevelUpgradePolicyImpl"/>-->
+    </bean>
+
+    <bean id="transactionManager" class = "org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="mailSender" class="com.example.tobyspring.ch05.DummyMailSender">
     </bean>
 
 

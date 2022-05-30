@@ -2,13 +2,14 @@ package com.example.tobyspring.ch05;
 
 import com.example.tobyspring.ch01.dao.UserDao;
 import com.example.tobyspring.ch01.domain.User;
-import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import javax.sql.DataSource;
-import java.sql.Connection;
 import java.util.List;
+
 
 public class UserService{
     public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
@@ -16,13 +17,21 @@ public class UserService{
 
     UserDao userDao;
 
-
     private DataSource dataSource;
+    private MailSender mailSender;
+    private PlatformTransactionManager transactionManager;
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
+    }
+
+    public void setMailSender(MailSender mailSender) {
+        this.mailSender = mailSender;
+    }
     //    private UserLevelUpgradePolicy userLevelUpgradePolicy;
 //
 //    public UserService(UserLevelUpgradePolicy userLevelUpgradePolicy) {
@@ -40,10 +49,10 @@ public class UserService{
         this.userDao = userDao;
     }
 
-    public void upgradeLevels() throws Exception{
-        TransactionSynchronizationManager.initSynchronization();
-        Connection c = DataSourceUtils.getConnection(dataSource);
-        c.setAutoCommit(false);
+
+    public void upgradeLevels() {
+        TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionDefinition());
+
         try {
             List<User> users = userDao.getAll();
             for (User user : users) {
@@ -51,14 +60,10 @@ public class UserService{
                     upgradeLevel(user);
                 }
             }
-            c.commit();
+            this.transactionManager.commit(status);
         } catch (Exception e){
-            c.rollback();
+            this.transactionManager.rollback(status);
             throw e;
-        } finally {
-            DataSourceUtils.releaseConnection(c, dataSource);
-            TransactionSynchronizationManager.unbindResource(this.dataSource);
-            TransactionSynchronizationManager.clearSynchronization();
         }
     }
 
@@ -81,6 +86,20 @@ public class UserService{
     protected void upgradeLevel(User user) {
         user.upgradeLevel();
         userDao.update(user);
+        sendUpgradeEmail(user);
+    }
+
+    private void sendUpgradeEmail(User user){
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(user.getEmail());
+        mailMessage.setFrom("useradmin@ksug.org");
+        mailMessage.setSubject("Upgrade 안내");
+        mailMessage.setText("사용자님의 등급이 " + user.getLevel().name());
+
+        mailSender.send(mailMessage);
+
+
     }
 }
 

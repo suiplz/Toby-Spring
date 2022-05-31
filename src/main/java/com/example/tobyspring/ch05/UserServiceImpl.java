@@ -2,6 +2,7 @@ package com.example.tobyspring.ch05;
 
 import com.example.tobyspring.ch01.dao.UserDao;
 import com.example.tobyspring.ch01.domain.User;
+import com.example.tobyspring.ch06.UserService;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -11,7 +12,7 @@ import javax.sql.DataSource;
 import java.util.List;
 
 
-public class UserService{
+public class UserServiceImpl implements UserService {
     public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
     public static final int MIN_RECOMMEND_FOR_GOLD = 30;
 
@@ -19,14 +20,10 @@ public class UserService{
 
     private DataSource dataSource;
     private MailSender mailSender;
-    private PlatformTransactionManager transactionManager;
+
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
-    }
-
-    public void setTransactionManager(PlatformTransactionManager transactionManager) {
-        this.transactionManager = transactionManager;
     }
 
     public void setMailSender(MailSender mailSender) {
@@ -42,7 +39,7 @@ public class UserService{
 //        this.userLevelUpgradePolicy = userLevelUpgradePolicy;
 //    }
 
-    public UserService() {
+    public UserServiceImpl() {
     }
 
     public void setUserDao(UserDao userDao) {
@@ -51,19 +48,11 @@ public class UserService{
 
 
     public void upgradeLevels() {
-        TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionDefinition());
-
-        try {
-            List<User> users = userDao.getAll();
-            for (User user : users) {
-                if (canUpgradeLevel(user)) {
-                    upgradeLevel(user);
-                }
+        List<User> users = userDao.getAll();
+        for (User user : users) {
+            if (canUpgradeLevel(user)) {
+                upgradeLevel(user);
             }
-            this.transactionManager.commit(status);
-        } catch (Exception e){
-            this.transactionManager.rollback(status);
-            throw e;
         }
     }
 
@@ -101,5 +90,6 @@ public class UserService{
 
 
     }
+
 }
 

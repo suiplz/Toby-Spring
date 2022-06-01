@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mail.MailException;
@@ -40,6 +41,8 @@ public class UserServiceTest {
 
     @Autowired
     UserService userService;
+    @Autowired
+    UserService testUserService;
 
     @Autowired
     UserDao userDao;
@@ -51,14 +54,10 @@ public class UserServiceTest {
     MailSender mailSender;
 
     @Autowired
-    UserServiceImpl userServiceImpl;
-
-    @Autowired
     ApplicationContext context;
 
 
     List<User> users;
-    User user;
 
     @BeforeEach
     void setUp() {
@@ -69,7 +68,6 @@ public class UserServiceTest {
                 new User("erwins", "신승한", "p3", Level.SILVER, 60, MIN_RECOMMEND_FOR_GOLD-1, "useradmin@ksug.org3"),
                 new User("madnite1", "이상호", "p4", Level.SILVER, 60, MIN_RECOMMEND_FOR_GOLD, "useradmin@ksug.org4"),
                 new User("green", "오민규", "p5", Level.GOLD, 100, Integer.MAX_VALUE, "useradmin@ksug.org5"));
-        user = new User();
     }
 
     @Test
@@ -129,38 +127,20 @@ public class UserServiceTest {
 
     }
 
-    @Test
-    void cannotUpgradeLevel() {
-        Level[] levels = Level.values();
-        for (Level level : levels) {
-            if (level.nextLevel() != null) continue;
-            user.setLevel(level);
-            assertThrows(IllegalArgumentException.class, () -> {
-                user.upgradeLevel();
-            });
-        }
-    }
 
     @Test
-    @DirtiesContext
     public void upgradeAllOrNothing() throws Exception {
-        TestUserService testUserService = new TestUserService(users.get(3).getId());
-        testUserService.setUserDao(userDao);
-        testUserService.setMailSender(mailSender);
 
-        TxProxyFactoryBean txProxyFactoryBean = context.getBean("&userService",
-                TxProxyFactoryBean.class);
-        txProxyFactoryBean.setTarget(testUserService);
-        UserService txUserService = (UserService) txProxyFactoryBean.getObject();
         for (User user : users) {
             userDao.add(user);
         }
         try {
-            txUserService.upgradeLevels();
+            this.testUserService.upgradeLevels();
             fail("TestUserServiceException expected");
         }
         catch(TestUserServiceException e) {
         }
+        checkLevelUpgraded(users.get(1), false);
 
     }
 
@@ -181,12 +161,8 @@ public class UserServiceTest {
         }
     }
 
-    static class TestUserService extends UserServiceImpl {
-        private String id;
-
-        private TestUserService(String id) {
-            this.id = id;
-        }
+    static class TestUserServiceImpl extends UserServiceImpl {
+        private String id = "madnite1";
 
         protected void upgradeLevel(User user) {
             if (user.getId().equals(this.id)) throw new TestUserServiceException();

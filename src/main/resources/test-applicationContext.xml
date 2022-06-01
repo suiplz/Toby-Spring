@@ -21,14 +21,7 @@
 <!--    <bean id="UserLevelUpgradePolicyImpl" class="com.example.tobyspring.ch05.UserLevelUpgradePolicyImpl"/>-->
 
 
-    <bean id="userService" class="com.example.tobyspring.ch06.TxProxyFactoryBean">
-        <property name="target" ref="userServiceImpl" />
-        <property name="transactionManager" ref="transactionManager"/>
-        <property name="pattern" value="upgradeLevels"/>
-        <property name="serviceInterface" value="com.example.tobyspring.ch06.UserService"/>
-    </bean>
-
-    <bean id="userServiceImpl" class="com.example.tobyspring.ch05.UserServiceImpl">
+    <bean id="userService" class="com.example.tobyspring.ch05.UserServiceImpl">
         <property name="userDao" ref="userDao"/>
         <property name="mailSender" ref="mailSender"/>
     </bean>
@@ -41,9 +34,27 @@
     </bean>
 
 
+    <bean id="transactionAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
+        <property name="advice" ref="transactionAdvice"/>
+        <property name="pointcut" ref="transactionPointCut"/>
+    </bean>
+
+    <bean id="transactionAdvice" class="com.example.tobyspring.ch06.TransactionAdvice">
+        <property name="transactionManager" ref="transactionManager"/>
+    </bean>
+
+    <bean id="transactionPointCut" class="org.springframework.aop.aspectj.AspectJExpressionPointcut">
+        <property name="expression" value="execution(* *..*ServiceImpl.upgrade*(..))"/>
+    </bean>
+
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+    <bean id="testUserService" class="com.example.tobyspring.ch05.UserServiceTest$TestUserServiceImpl" parent="userService"/>
 
 
-    <!--    <bean id="jdbcContext" class="com.example.tobyspring.ch03.dao.JdbcContext">-->
+
+
+    <!--    <bean id="jdbcContext" class="com.example.tobyspring.ch05.UserServiceTest.example.tobyspring.ch03.dao.JdbcContext">-->
 <!--        <property name="dataSource" ref="dataSource"/>-->
 <!--    </bean>-->
 </beans>

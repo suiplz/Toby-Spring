@@ -16,9 +16,9 @@
 <!--        <property name="jdbcContext" ref="jdbcContext"/>-->
     </bean>
 
-    <bean id="userService" class="com.example.tobyspring.ch05.UserService">
-        <property name="userDao" ref="userDao"/>
-    </bean>
+<!--    <bean id="userService" class="com.example.tobyspring.ch05.UserService">-->
+<!--        <property name="userDao" ref="userDao"/>-->
+<!--    </bean>-->
 
 <!--    <bean id="jdbcContext" class="com.example.tobyspring.ch03.dao.JdbcContext">-->
 <!--        <property name="dataSource" ref="dataSource"/>-->

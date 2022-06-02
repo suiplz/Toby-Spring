@@ -2,9 +2,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
        xmlns:tx="http://www.springframework.org/schema/tx"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
-                            http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+                            http://www.springframework.org/schema/context http://www.springframework.org/schema/spring-context-3.0.xsd http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <tx:annotation-driven/>
+    <context:annotation-config/>
 
     <bean id="dataSource"
           class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
@@ -17,17 +21,12 @@
 
     <bean id="userDao" class="com.example.tobyspring.ch04.dao.UserDaoJdbc">
         <property name="dataSource" ref="dataSource"/>
-        <property name="sqlMap">
-            <map>
-                <entry key="add" value="insert into users(id, name, password, level, login, recommend, email) values(?,?,?,?,?,?,?)"/>
-                <entry key="get" value="select * from users where id = ?"/>
-                <entry key="getAll" value="select * from users order by id"/>
-                <entry key="deleteAll" value="delete from users"/>
-                <entry key="getCount" value="select count(*) from users"/>
-                <entry key="update" value="update users set name = ?, password = ?, level = ?, login = ?, recommned = ?, email = ? where id = ?"/>
-            </map>
-        </property>
+        <property name="sqlService" ref="sqlService"/>
     </bean>
+
+    <bean id="sqlService" class="com.example.tobyspring.ch07.XmlSqlService">
+    </bean>
+
 <!--    <bean id="UserLevelUpgradePolicy" class="com.example.tobyspring.ch05.UserLevelUpgradePolicy" abstract="true"/>-->
 
 <!--    <bean id="UserLevelUpgradePolicyImpl" class="com.example.tobyspring.ch05.UserLevelUpgradePolicyImpl"/>-->

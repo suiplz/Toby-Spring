@@ -4,6 +4,7 @@ import com.example.tobyspring.ch01.dao.UserDao;
 import com.example.tobyspring.ch01.domain.User;
 import com.example.tobyspring.ch04.DuplicateUserIdException;
 import com.example.tobyspring.ch05.Level;
+import com.example.tobyspring.ch07.SqlService;
 import com.mysql.cj.exceptions.MysqlErrorNumbers;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 public class UserDaoJdbc implements UserDao{
 
-    private Map<String, String> sqlMap;
+    private SqlService sqlService;
 
     private JdbcTemplate jdbcTemplate;
 
@@ -36,21 +37,21 @@ public class UserDaoJdbc implements UserDao{
             };
 
     public void add(User user){
-        this.jdbcTemplate.update(this.sqlMap.get("add"),
+        this.jdbcTemplate.update(sqlService.getSql("userAdd"),
                 user.getId(), user.getName(), user.getPassword(), user.getLevel().intValue(), user.getLogin(), user.getRecommend(), user.getEmail());
 
     }
 
 
     public User get(String id) {
-        return this.jdbcTemplate.queryForObject("select * from users where id = ?",
+        return this.jdbcTemplate.queryForObject(sqlService.getSql("userGet"),
                 new Object[] {id}, this.userMapper);
 
     }
 
 
     public List<User> getAll() {
-        return this.jdbcTemplate.query("select * from users order by id",
+        return this.jdbcTemplate.query(sqlService.getSql("userGetAll"),
                 this.userMapper);
     }
 
@@ -62,7 +63,7 @@ public class UserDaoJdbc implements UserDao{
 //                    }
 //                }
 //        );
-        this.jdbcTemplate.update("delete from users");
+        this.jdbcTemplate.update(sqlService.getSql("userDeleteAll"));
     }
 
     public int getCount() {
@@ -77,21 +78,20 @@ public class UserDaoJdbc implements UserDao{
 //                return rs.getInt(1);
 //            }
 //        });
-        return this.jdbcTemplate.queryForObject("select count(*) from users", Integer.class);
+        return this.jdbcTemplate.queryForObject(sqlService.getSql("userGetCount"), Integer.class);
+    }
+
+    public void update(User user) {
+        this.jdbcTemplate.update(sqlService.getSql("userUpdate"),
+                user.getName(), user.getPassword(),
+                user.getLevel().intValue(), user.getLogin(), user.getRecommend(), user.getEmail(), user.getId());
     }
 
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public void update(User user) {
-        this.jdbcTemplate.update(
-                "update users set name = ?, password = ?, level = ?, login = ?, " +
-                        "recommend = ?, email = ? where id = ? ", user.getName(), user.getPassword(),
-                user.getLevel().intValue(), user.getLogin(), user.getRecommend(), user.getEmail(), user.getId());
-    }
-
-    public void setSqlMap(Map<String, String> sqlMap) {
-        this.sqlMap = sqlMap;
+    public void setSqlService(SqlService sqlService) {
+        this.sqlService = sqlService;
     }
 }

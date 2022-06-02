@@ -14,12 +14,17 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Proxy;
@@ -144,6 +149,19 @@ public class UserServiceTest {
 
     }
 
+    @Test
+    @Transactional
+    void transactionSync() {
+        userService.add(users.get(0));
+        userService.add(users.get(1));
+    }
+
+
+//    @Test
+//    void readOnlyTransactionAttribute() {
+//        testUserService.getAll();
+//    }
+
     private void checkLevel(User user, Level expectedLevel) {
 
         User userUpdate = userDao.get(user.getId());
@@ -161,12 +179,19 @@ public class UserServiceTest {
         }
     }
 
-    static class TestUserServiceImpl extends UserServiceImpl {
+    static class TestUserService extends UserServiceImpl {
         private String id = "madnite1";
 
         protected void upgradeLevel(User user) {
             if (user.getId().equals(this.id)) throw new TestUserServiceException();
             super.upgradeLevel(user);
+        }
+
+        public List<User> getAll(){
+            for (User user : super.getAll()) {
+                super.update(user);
+            }
+            return null;
         }
     }
 

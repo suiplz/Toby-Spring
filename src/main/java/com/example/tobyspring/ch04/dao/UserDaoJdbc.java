@@ -12,8 +12,11 @@ import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class UserDaoJdbc implements UserDao{
+
+    private Map<String, String> sqlMap;
 
     private JdbcTemplate jdbcTemplate;
 
@@ -32,8 +35,8 @@ public class UserDaoJdbc implements UserDao{
                 }
             };
 
-    public void add(final User user) throws DuplicateUserIdException{
-        this.jdbcTemplate.update("insert into users(id, name, password, level, login, recommend, email) values(?, ?, ?, ?, ?, ?, ?)",
+    public void add(User user){
+        this.jdbcTemplate.update(this.sqlMap.get("add"),
                 user.getId(), user.getName(), user.getPassword(), user.getLevel().intValue(), user.getLogin(), user.getRecommend(), user.getEmail());
 
     }
@@ -88,6 +91,7 @@ public class UserDaoJdbc implements UserDao{
                 user.getLevel().intValue(), user.getLogin(), user.getRecommend(), user.getEmail(), user.getId());
     }
 
-
-
+    public void setSqlMap(Map<String, String> sqlMap) {
+        this.sqlMap = sqlMap;
+    }
 }

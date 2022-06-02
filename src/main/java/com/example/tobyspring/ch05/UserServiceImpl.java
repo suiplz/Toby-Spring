@@ -7,16 +7,34 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import javax.sql.DataSource;
 import java.util.List;
 
 
+@Transactional
 public class UserServiceImpl implements UserService {
     public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
     public static final int MIN_RECOMMEND_FOR_GOLD = 30;
 
     UserDao userDao;
+
+    public User get(String id) {
+        return userDao.get(id);
+    }
+
+    public List<User> getAll() {
+        return userDao.getAll();
+    }
+
+    public void deleteAll() {
+        userDao.deleteAll();
+    }
+
+    public void update(User user) {
+        userDao.update(user);
+    }
 
     private DataSource dataSource;
     private MailSender mailSender;

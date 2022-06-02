@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+                            http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 
     <bean id="dataSource"
           class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
@@ -14,7 +17,16 @@
 
     <bean id="userDao" class="com.example.tobyspring.ch04.dao.UserDaoJdbc">
         <property name="dataSource" ref="dataSource"/>
-<!--        <property name="jdbcContext" ref="jdbcContext"/>-->
+        <property name="sqlMap">
+            <map>
+                <entry key="add" value="insert into users(id, name, password, level, login, recommend, email) values(?,?,?,?,?,?,?)"/>
+                <entry key="get" value="select * from users where id = ?"/>
+                <entry key="getAll" value="select * from users order by id"/>
+                <entry key="deleteAll" value="delete from users"/>
+                <entry key="getCount" value="select count(*) from users"/>
+                <entry key="update" value="update users set name = ?, password = ?, level = ?, login = ?, recommned = ?, email = ? where id = ?"/>
+            </map>
+        </property>
     </bean>
 <!--    <bean id="UserLevelUpgradePolicy" class="com.example.tobyspring.ch05.UserLevelUpgradePolicy" abstract="true"/>-->
 
@@ -39,9 +51,25 @@
         <property name="pointcut" ref="transactionPointCut"/>
     </bean>
 
-    <bean id="transactionAdvice" class="com.example.tobyspring.ch06.TransactionAdvice">
+    <bean id="transactionAdvice" class="org.springframework.transaction.interceptor.TransactionInterceptor">
         <property name="transactionManager" ref="transactionManager"/>
+        <property name="transactionAttributes">
+            <props>
+                <prop key="get*">PROPAGATION_REQUIRED, readOnly, timeout_30</prop>
+                <prop key="*">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
     </bean>
+
+    <tx:advice id="transactionAdvice">
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <tx:advice id="batchTxAdvice">
+    </tx:advice>
 
     <bean id="transactionPointCut" class="org.springframework.aop.aspectj.AspectJExpressionPointcut">
         <property name="expression" value="execution(* *..*ServiceImpl.upgrade*(..))"/>
@@ -49,7 +77,11 @@
 
     <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
 
-    <bean id="testUserService" class="com.example.tobyspring.ch05.UserServiceTest$TestUserServiceImpl" parent="userService"/>
+    <bean id="testUserService" class="com.example.tobyspring.ch05.UserServiceTest$TestUserService" parent="userService"/>
+
+    <aop:config>
+        <aop:advisor advice-ref="transactionAdvice" pointcut="bean(*Service)"/>
+    </aop:config>
 
 
 
